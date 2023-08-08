@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd">
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="1f3efabb-9e2f-43db-b5cc-dab661e5ce97" >
+		<salesforce:basic-connection username="lenziemaraang@gmail.com" password="Qwertyuiop1!" securityToken="AXu0Pf7iX7qVtLeWI1VwoQEE" />
+	</salesforce:sfdc-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="93769a8f-96d6-4636-8ad8-ad208dbc347f" >
+		<file:connection workingDir="/Volumes/Nzieng SSD1/Nzieng SSD1/IT/MuleSoft/muleRepExamples/csvToSalesforce" />
+	</file:config>
+	<file:config name="File_Config1" doc:name="File Config" doc:id="a597870b-d196-4077-af28-4f035f7560c1" >
+		<file:connection workingDir="/Volumes/Nzieng SSD1/Nzieng SSD1/IT/MuleSoft/muleRepExamples/csvToSalesforce/src/main/resources/output" />
+	</file:config>
+	<flow name="csvtosalesforce.gitFlow" doc:id="4c805a88-538e-48aa-99ce-c46789639989" >
+		<file:listener doc:name="On New or Updated File" doc:id="53ccd342-ef4b-4f67-a36c-ffbaa201b658" config-ref="File_Config" directory="/Volumes/Nzieng SSD1/Nzieng SSD1/IT/MuleSoft/muleRepExamples/csvToSalesforce/src/main/resources/input" autoDelete="true">
+			<scheduling-strategy >
+				<fixed-frequency frequency="20000"/>
+			</scheduling-strategy>
+		</file:listener>
+		<ee:transform doc:name="Transform Message" doc:id="aa4493d3-4da1-4005-8eb9-8db1a8e3cecc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload map ( payload01 , indexOfPayload01 ) -> {
+	LastName: payload01." lastName",
+	FirstName: payload01.firstName,
+	MobilePhone: payload01." phone",
+	Email: payload01." email"
+}]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create type="Contact" doc:name="Create" doc:id="9b5b2447-13a9-4543-80e8-3e896c960ff5" config-ref="Salesforce_Config"/>
+		<ee:transform doc:name="Transform Message" doc:id="aa54cfc1-82ea-4062-a8d4-383dc1eed7fc" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<file:write doc:name="Write" doc:id="a93db9ff-6b83-4bb5-8e02-3b7bb3eb4190" config-ref="File_Config1" path="/Volumes/Nzieng SSD1/Nzieng SSD1/IT/MuleSoft/muleRepExamples/csvToSalesforce/src/main/resources/output/test.json"/>
+	</flow>
+</mule>
